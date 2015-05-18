@@ -1,0 +1,52 @@
+    /*
+     RunLoop :事件循环  iOS平台特有
+     用处:让线程有活干时干活  没有活时睡眠 让出CPU时间片
+     
+     主线程的RunLoop自动运行
+     子线程的RunLoop必须手动运行 配置
+     */
+
+
+// *****RunLoop应用场景1****************************
+// 该写法问题：用户滑动控件时 定时器实效(NSDefaultRunLoopMode)
+//    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(doSomeThing) userInfo:nil repeats:YES];
+    // 定时器有效写法
+//    NSTimer * time = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(doSomeThing) userInfo:nil repeats:YES];
+//    NSTimer * time1 = [[NSTimer alloc] initWithFireDate:[NSDate dateWithTimeIntervalSinceNow:1.0] interval:1.0 target:self selector:@selector(doSomeThing) userInfo:nil repeats:YES];
+//    // 将定时器添加到当前的事件循环中 并且以NSRunLoopCommonModes模式运行定时器
+//    [[NSRunLoop currentRunLoop] addTimer:time1 forMode:NSRunLoopCommonModes];
+
+// *****RunLoop应用场景2****************************
+//子线程中异步下载使用NSRunLoop让异步顺利执行完）
+- (void)downLoadIMG
+{
+    // 异步
+//    _request = [NSURLRequest requestWithURL:[NSURL URLWithString:IMGURL]];
+//    [NSURLConnection connectionWithRequest:_request delegate:self];
+//    NSLog(@">>>debug<<<");
+    // 线程有条件退出
+    // 多线程异步下载解决方法
+    // 占用CPU时间片
+//    while(1) {
+//        NSLog(@"thead run...");
+//    }
+    //子线程方法执行完后会马上释放该子线程内的所有对象，因此使用以下方式不让子线程马上执行完，以便异步下载能顺利执行完毕
+//    while (!_isFinish) {
+//        // 获取当前线程的RunLoop
+//        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+//        NSLog(@"thead run...");
+//    }
+    // 下载完成退出线程
+
+}
+
+// *****RunLoop应用场景3****************************  
+    // RunLoop应用场景3  当用户滑动控件时 异步下载会停止
+    // 滑动控件 异步下载不断
+
+	以便用户滑动控件时不会暂停运行而继续执行不受用户滑动控件的影响  
+    _request = [NSURLRequest requestWithURL:[NSURL URLWithString:IMGURL]];
+    NSURLConnection * connection = [[NSURLConnection alloc] initWithRequest:_request delegate:self startImmediately:NO];
+    // 将网络请求添加到RunLoop中
+    [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+    [connection start];
